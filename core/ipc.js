@@ -98,6 +98,30 @@ function setupIPC(mainWindow, dataManager, notificationSystem) {
         return true;
     });
 
+    // Manejar completado de hábito desde la UI
+    ipcMain.handle('complete-habit-from-ui', async () => {
+        try {
+            if (!dataManager) {
+                console.error('Error: dataManager no está inicializado');
+                throw new Error('Error de inicialización');
+            }
+            
+            // Actualizar estadísticas
+            const updatedStats = await dataManager.completeHabit();
+            console.log('✅ Hábito completado, nuevas estadísticas:', updatedStats);
+            
+            // Notificar al sistema de notificaciones si está disponible
+            if (safeNotificationSystem && typeof safeNotificationSystem.restart === 'function') {
+                safeNotificationSystem.restart();
+            }
+            
+            return updatedStats;
+        } catch (error) {
+            console.error('❌ Error en complete-habit-from-ui:', error);
+            throw error;
+        }
+    });
+
     // Gestión de estadísticas
     ipcMain.handle('get-app-stats', () => {
         return dataManager.stats;
