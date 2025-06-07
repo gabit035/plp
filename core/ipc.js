@@ -1,10 +1,65 @@
 const { ipcMain } = require('electron');
 
 function setupIPC(mainWindow, dataManager, notificationSystem) {
-    // Inicialización de la app
+    console.log('🔌 Configurando manejadores IPC...');
+    console.log('🔌 Sistema de notificaciones disponible:', notificationSystem ? '✅ Sí' : '❌ No');
+    
+    // Verificar si ya hay manejadores registrados para evitar duplicados
+    const ipcEvents = ipcMain.eventNames();
+    if (ipcEvents.includes('trigger-random-habit')) {
+        console.log('ℹ️ El manejador trigger-random-habit ya está registrado, omitiendo configuración duplicada');
+        return; // Salir si ya está configurado
+    }
+    
+    // Guardar referencia al sistema de notificaciones
+    const safeNotificationSystem = notificationSystem;
+    
+    // Configurar manejadores IPC
     ipcMain.handle('app-ready', async () => {
-        await dataManager.resetDailyStats();
-        return dataManager.getAllData();
+        try {
+            if (!dataManager) {
+                console.error('Error: dataManager no está inicializado');
+                return { error: 'Error de inicialización' };
+            }
+            
+            // Resetear estadísticas diarias
+            try {
+                await dataManager.resetDailyStats();
+                console.log('✅ Estadísticas diarias reiniciadas');
+            } catch (error) {
+                console.error('⚠️ Error al reiniciar estadísticas diarias:', error);
+                // Continuar incluso si hay error al reiniciar estadísticas
+            }
+            
+            // Obtener todos los datos
+            const appData = dataManager.getAllData() || {
+                profile: null,
+                habits: [],
+                settings: {
+                    notificationsEnabled: false,
+                    frequency: 5,
+                    soundType: 'chime',
+                    minimizeToTray: false,
+                    autoStart: false
+                },
+                stats: {
+                    completedToday: 0,
+                    currentStreak: 0,
+                    lastCompletionDate: null,
+                    totalCompleted: 0
+                }
+            };
+            
+            console.log('📊 Datos de la aplicación listos:', Object.keys(appData));
+            return appData;
+            
+        } catch (error) {
+            console.error('❌ Error en app-ready:', error);
+            return {
+                error: error.message || 'Error al cargar los datos de la aplicación',
+                stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+            };
+        }
     });
 
     // Gestión de perfil de usuario
@@ -48,40 +103,61 @@ function setupIPC(mainWindow, dataManager, notificationSystem) {
         return dataManager.stats;
     });
 
+    ipcMain.handle('save-app-stats', async (event, stats) => {
+        try {
+            await dataManager.setStats(stats);
+            return { success: true };
+        } catch (error) {
+            console.error('❌ Error al guardar estadísticas:', error);
+            return { 
+                success: false, 
+                error: error.message,
+                stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+            };
+        }
+    });
+
     // Manejar solicitud de hábito aleatorio
     ipcMain.handle('trigger-random-habit', async () => {
-        if (notificationSystem && typeof notificationSystem.triggerManualNotification === 'function') {
-            await notificationSystem.triggerManualNotification();
-            return true;
+        try {
+            console.log('🔔 Solicitado trigger de hábito aleatorio manual');
+            
+            // Usar safeNotificationSystem que ya está en el ámbito
+            if (!safeNotificationSystem) {
+                console.warn('⚠️ Sistema de notificaciones no disponible, ignorando solicitud');
+                return { 
+                    success: true, 
+                    message: 'Sistema de notificaciones no disponible, acción ignorada',
+                    notificationSystemAvailable: false
+                };
+            }
+            
+            // Verificar si el método triggerManualNotification está disponible
+            if (typeof safeNotificationSystem.triggerManualNotification === 'function') {
+                console.log('✅ Disparando notificación manual...');
+                safeNotificationSystem.triggerManualNotification();
+                return { 
+                    success: true, 
+                    message: 'Notificación manual disparada',
+                    notificationSystemAvailable: true
+                };
+            } else {
+                console.error('❌ El método triggerManualNotification no está disponible');
+                return { 
+                    success: false, 
+                    error: 'Método triggerManualNotification no disponible',
+                    notificationSystemAvailable: true
+                };
+            }
+        } catch (error) {
+            console.error('❌ Error al disparar notificación manual:', error);
+            return { 
+                success: false, 
+                error: error.message,
+                stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
+                notificationSystemAvailable: !!safeNotificationSystem
+            };
         }
-        throw new Error('Sistema de notificaciones no disponible');
-    });
-
-    ipcMain.handle('save-app-stats', async (event, stats) => {
-        await dataManager.setStats(stats);
-        return true;
-    });
-
-    // Completar hábito desde UI
-    ipcMain.handle('complete-habit-from-ui', async () => {
-        const newStats = await dataManager.completeHabit();
-        
-        // Actualizar bandeja del sistema
-        const poneteApp = require('../main');
-        if (poneteApp.tray) {
-            poneteApp.tray.refresh();
-        }
-        
-        return newStats;
-    });
-
-    // Trigger de hábito aleatorio manual
-    ipcMain.handle('trigger-random-habit', async () => {
-        const notificationSystem = require('./notifications').NotificationSystem;
-        if (notificationSystem) {
-            notificationSystem.triggerManualNotification();
-        }
-        return true;
     });
 
     // Mostrar notificación nativa del sistema

@@ -8,7 +8,7 @@ window.AppState = {
         notificationsEnabled: false,
         frequency: 5,
         soundType: 'chime',
-        minimizeToTray: true
+        // Configuración de notificaciones
     },
     stats: {
         completedToday: 0,
@@ -62,18 +62,84 @@ async function initializeApp() {
 // Configurar listeners IPC
 setupIPCListeners();
 
-// Esperar a que el DOM esté listo y luego inicializar la aplicación
-document.addEventListener('DOMContentLoaded', () => {
-    // Esperar a que el proceso principal envíe la señal de que está listo
-    ipcRenderer.once('app-started', async () => {
+// Función para manejar la inicialización de la aplicación
+async function startApp() {
+    console.log('Iniciando aplicación...');
+    try {
+        // Esperar a que el proceso principal esté listo
+        const appData = await ipcRenderer.invoke('app-ready');
+        console.log('Datos recibidos del proceso principal:', appData);
+        
+        // Inicializar la aplicación con los datos recibidos
         await initializeApp();
-    });
-    
-    // Si ya pasó el evento, intentar inicializar de todos modos
-    if (document.readyState === 'complete' || document.readyState === 'interactive') {
-        initializeApp().catch(console.error);
+        console.log('Aplicación inicializada correctamente');
+    } catch (error) {
+        console.error('Error crítico al inicializar la aplicación:', error);
+        updateSystemStatus('error', 'Error al iniciar la aplicación');
+        
+        // Mostrar mensaje de error en la interfaz
+        const errorContainer = document.createElement('div');
+        errorContainer.style.position = 'fixed';
+        errorContainer.style.top = '50%';
+        errorContainer.style.left = '50%';
+        errorContainer.style.transform = 'translate(-50%, -50%)';
+        errorContainer.style.padding = '20px';
+        errorContainer.style.background = '#ffebee';
+        errorContainer.style.border = '2px solid #f44336';
+        errorContainer.style.borderRadius = '8px';
+        errorContainer.style.maxWidth = '80%';
+        errorContainer.style.zIndex = '9999';
+        
+        errorContainer.innerHTML = `
+            <h2 style="color: #d32f2f; margin-top: 0;">Error al iniciar la aplicación</h2>
+            <p>${error.message || 'Error desconocido'}</p>
+            <p>Por favor, cierra la aplicación y vuelve a intentarlo.</p>
+            <button onclick="window.location.reload()" style="
+                background: #d32f2f;
+                color: white;
+                border: none;
+                padding: 8px 16px;
+                border-radius: 4px;
+                cursor: pointer;
+                margin-top: 10px;
+            ">
+                Reintentar
+            </button>
+        `;
+        
+        document.body.innerHTML = '';
+        document.body.appendChild(errorContainer);
     }
+}
+
+// Configurar el listener para el evento 'app-started' desde el proceso principal
+ipcRenderer.on('app-started', async () => {
+    console.log('Evento app-started recibido');
+    await startApp();
 });
+
+// Iniciar la aplicación cuando el DOM esté listo
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('DOM cargado, esperando señal del proceso principal...');
+    
+    // Si el DOM ya está listo, pero aún no hemos recibido el evento 'app-started',
+    // configuramos un temporizador como respaldo
+    const timeout = setTimeout(() => {
+        console.log('Tiempo de espera agotado, intentando iniciar de todos modos...');
+        startApp().catch(console.error);
+    }, 2000);
+    
+    // Si recibimos el evento 'app-started', cancelamos el temporizador
+    ipcRenderer.once('app-started', () => {
+        clearTimeout(timeout);
+    });
+});
+
+// Si el DOM ya está listo cuando se carga el script
+if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    console.log('DOM ya está listo, iniciando aplicación...');
+    startApp().catch(console.error);
+}
 
 // Configurar listeners de IPC
 function setupIPCListeners() {

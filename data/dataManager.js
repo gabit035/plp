@@ -15,7 +15,7 @@ class DataManager {
                 notificationsEnabled: false,
                 frequency: 5,
                 soundType: 'chime',
-                minimizeToTray: false,  // Deshabilitado por defecto
+                // Configuración de notificaciones
                 autoStart: false
             },
             stats: {
@@ -28,12 +28,39 @@ class DataManager {
     }
 
     async initialize() {
+        console.log('Inicializando DataManager...');
+        console.log('Ruta de datos:', this.userDataPath);
+        
         try {
+            // Asegurarse de que el directorio existe
             await this.ensureDataDirectory();
+            console.log('Directorio de datos verificado');
+            
+            // Cargar datos
             await this.loadData();
-            console.log('✅ DataManager inicializado');
+            console.log('Datos cargados correctamente');
+            
+            // Verificar estructura de datos
+            if (!this.data.userProfile) {
+                console.log('Perfil de usuario no encontrado, usando valores por defecto');
+                this.data.userProfile = null;
+            }
+            
+            console.log('✅ DataManager inicializado correctamente');
+            return true;
         } catch (error) {
-            console.error('❌ Error inicializando DataManager:', error);
+            console.error('❌ Error crítico en DataManager.initialize:', error);
+            // Intentar recuperación
+            try {
+                console.log('Intentando restaurar configuración por defecto...');
+                this.data = this.getDefaultData();
+                await this.saveData();
+                console.log('Configuración por defecto restaurada');
+                return true;
+            } catch (recoveryError) {
+                console.error('❌ Error al restaurar configuración por defecto:', recoveryError);
+                throw new Error('No se pudo inicializar el DataManager: ' + recoveryError.message);
+            }
         }
     }
 
@@ -45,10 +72,50 @@ class DataManager {
         }
     }
 
+    getDefaultData() {
+        return {
+            userProfile: null,
+            personalizedHabits: [],
+            settings: {
+                notificationsEnabled: false,
+                frequency: 5,
+                soundType: 'chime',
+                minimizeToTray: false,
+                autoStart: false
+            },
+            stats: {
+                completedToday: 0,
+                currentStreak: 0,
+                lastCompletionDate: null,
+                totalCompleted: 0
+            }
+        };
+    }
+
     async loadData() {
+        console.log(`Cargando datos desde: ${this.dataFile}`);
         try {
-            const data = await fs.readFile(this.dataFile, 'utf8');
-            this.data = { ...this.data, ...JSON.parse(data) };
+            // Verificar si el archivo existe
+            try {
+                await fs.access(this.dataFile);
+            } catch (accessError) {
+                console.log('Archivo de datos no encontrado, creando uno nuevo...');
+                this.data = this.getDefaultData();
+                await this.saveData();
+                return;
+            }
+            
+            // Leer y analizar el archivo
+            const fileContent = await fs.readFile(this.dataFile, 'utf8');
+            if (!fileContent.trim()) {
+                console.log('Archivo de datos vacío, usando valores por defecto');
+                this.data = this.getDefaultData();
+                return;
+            }
+            
+            const parsedData = JSON.parse(fileContent);
+            this.data = { ...this.getDefaultData(), ...parsedData };
+            console.log('Datos cargados correctamente');
         } catch (error) {
             // Archivo no existe, usar datos por defecto
             await this.saveData();

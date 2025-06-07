@@ -96,7 +96,7 @@ const devConfig = {
             notificationsEnabled: true,
             frequency: 0.1, // 6 segundos para testing
             soundType: 'chime',
-            minimizeToTray: true,
+            // Configuración de notificaciones
             autoStart: false
         }
     },
