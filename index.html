@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⚡ ¡Ponete Las Pilas!</title>
+    <link rel="stylesheet" href="ui/css/styles.css">
+</head>
+<body>
+    <!-- Header Corporativo -->
+    <header class="app-header">
+        <div class="app-logo">
+            <span class="logo-icon">⚡</span>
+            <span class="logo-text">¡Ponete Las Pilas!</span>
+        </div>
+        <div class="header-status">
+            <div class="status-badge" id="status-badge">
+                <span id="status-icon">🔴</span>
+                <span id="status-text">Sistema Iniciando</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Container Principal -->
+    <div class="main-container">
+        <!-- Sidebar de Navegación -->
+        <nav class="sidebar">
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="#" class="nav-link active" data-screen="welcome">
+                        <span class="nav-icon">🏠</span>
+                        <span>Inicio</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" data-screen="survey">
+                        <span class="nav-icon">📋</span>
+                        <span>Evaluación</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" data-screen="dashboard">
+                        <span class="nav-icon">📊</span>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" data-screen="habits">
+                        <span class="nav-icon">⚡</span>
+                        <span>Mis Hábitos</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" data-screen="settings">
+                        <span class="nav-icon">⚙️</span>
+                        <span>Configuración</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Área de Contenido -->
+        <main class="content-area">
+            <!-- Pantalla de Bienvenida -->
+            <div id="welcome-screen" class="screen active">
+                <div class="welcome-content">
+                    <h1 class="welcome-title">⚡ ¡Ponete Las Pilas!</h1>
+                    <p class="welcome-subtitle">
+                        Tu asistente personal para formar micro hábitos inteligentes que realmente funcionan.
+                    </p>
+                    
+                    <div class="feature-grid">
+                        <div class="feature-card">
+                            <span class="feature-icon">🧠</span>
+                            <h3 class="feature-title">Inteligencia Personalizada</h3>
+                            <p class="feature-description">
+                                Algoritmo que genera micro hábitos únicos para tu estilo de vida.
+                            </p>
+                        </div>
+                        <div class="feature-card">
+                            <span class="feature-icon">🔔</span>
+                            <h3 class="feature-title">Notificaciones Nativas</h3>
+                            <p class="feature-description">
+                                Sistema que funciona en segundo plano, incluso con la app minimizada.
+                            </p>
+                        </div>
+                        <div class="feature-card">
+                            <span class="feature-icon">📈</span>
+                            <h3 class="feature-title">Analytics Avanzado</h3>
+                            <p class="feature-description">
+                                Seguimiento detallado con métricas que motivan tu crecimiento.
+                            </p>
+                        </div>
+                        <div class="feature-card">
+                            <span class="feature-icon">🎯</span>
+                            <h3 class="feature-title">Enfoque Empresarial</h3>
+                            <p class="feature-description">
+                                Metodología probada para maximizar productividad y bienestar.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="action-bar">
+                        <button class="btn btn-primary" onclick="navigateToScreen('survey')">
+                            <span>🚀</span>
+                            Comenzar Evaluación
+                        </button>
+                        <button class="btn btn-secondary" onclick="navigateToScreen('dashboard')">
+                            <span>👁️</span>
+                            Ver Demo
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pantalla de Evaluación -->
+            <div id="survey-screen" class="screen">
+                <div class="tab-container">
+                    <div class="tab-content">
+                        <div class="dashboard-header">
+                            <h2 class="dashboard-title">Evaluación Personalizada</h2>
+                            <p class="dashboard-subtitle">Contanos sobre tu estilo de vida</p>
+                        </div>
+
+                        <div class="survey-progress">
+                            <div class="progress-info">
+                                <span class="progress-text">Progreso de Evaluación</span>
+                                <span class="progress-text" id="progress-counter">1 / 6</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="progress-fill"></div>
+                            </div>
+                        </div>
+
+                        <div id="survey-questions"></div>
+
+                        <div class="action-bar">
+                            <button class="btn btn-secondary" id="prev-btn" onclick="previousQuestion()" style="display: none;">
+                                <span>←</span> Anterior
+                            </button>
+                            <button class="btn btn-primary" id="next-btn" onclick="nextQuestion()">
+                                <span>→</span> Siguiente
+                            </button>
+                            <button class="btn btn-success" id="finish-btn" onclick="finishSurvey()" style="display: none;">
+                                <span>✨</span> Generar Hábitos
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pantalla de Evaluación Personalizada -->
+            <div id="survey-screen" class="screen">
+                <div class="survey-container">
+                    <div class="survey-header">
+                        <h2>Evaluación Personalizada</h2>
+                        <p>Responde estas preguntas para personalizar tu experiencia</p>
+                        <div class="progress-bar">
+                            <div class="progress" id="survey-progress"></div>
+                        </div>
+                    </div>
+                    <div class="survey-content">
+                        <div id="survey-questions"></div>
+                        <div class="survey-navigation">
+                            <button class="btn btn-secondary" id="prev-btn" onclick="previousQuestion()" disabled>
+                                <span>⬅️</span> Anterior
+                            </button>
+                            <button class="btn btn-primary" id="next-btn" onclick="nextQuestion()">
+                                Siguiente <span>➡️</span>
+                            </button>
+                            <button class="btn btn-success" id="finish-btn" onclick="finishSurvey()" style="display: none;">
+                                <span>✅</span> Finalizar Evaluación
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pantalla de Dashboard -->
+            <div id="dashboard-screen" class="screen">
+                <div class="tab-container">
+                    <div class="tab-header">
+                        <button class="tab-button active" data-tab="overview">
+                            <span>📊</span> Vista General
+                        </button>
+                        <button class="tab-button" data-tab="analytics">
+                            <span>📈</span> Analytics
+                        </button>
+                        <button class="tab-button" data-tab="activity">
+                            <span>⚡</span> Actividad
+                        </button>
+                    </div>
+
+                    <div class="tab-content">
+                        <div id="tab-overview" class="tab-panel active">
+                            <div class="stats-grid">
+                                <div class="stat-card">
+                                    <div class="stat-number" id="completed-today">0</div>
+                                    <div class="stat-label">Completados Hoy</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-number" id="current-streak">0</div>
+                                    <div class="stat-label">Racha Actual</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-number" id="total-habits">0</div>
+                                    <div class="stat-label">Hábitos Activos</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-number" id="success-rate">0%</div>
+                                    <div class="stat-label">Tasa de Éxito</div>
+                                </div>
+                            </div>
+
+                            <div class="action-bar">
+                                <button class="btn btn-success" onclick="triggerRandomHabit()">
+                                    <span>🎲</span> Micro Hábito Ahora
+                                </button>
+                                <button class="btn btn-primary" onclick="saveAllData()">
+                                    <span>💾</span> Guardar Progreso
+                                </button>
+                            </div>
+                        </div>
+
+                        <div id="tab-analytics" class="tab-panel">
+                            <div class="dashboard-header">
+                                <h3>Analytics Detallado</h3>
+                                <p>Próximamente: gráficos avanzados de progreso</p>
+                            </div>
+                        </div>
+
+                        <div id="tab-activity" class="tab-panel">
+                            <div class="dashboard-header">
+                                <h3>Actividad Reciente</h3>
+                                <p>Historial de micro hábitos completados</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pantalla de Hábitos -->
+            <div id="habits-screen" class="screen">
+                <div class="tab-container">
+                    <div class="tab-content">
+                        <div class="dashboard-header">
+                            <h2 class="dashboard-title">Mis Micro Hábitos</h2>
+                            <p class="dashboard-subtitle">Hábitos personalizados para tu perfil</p>
+                        </div>
+                        <div class="habits-grid" id="personal-habits"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pantalla de Configuración -->
+            <div id="settings-screen" class="screen">
+                <div class="tab-container">
+                    <div class="tab-content">
+                        <div class="dashboard-header">
+                            <h2 class="dashboard-title">Configuración</h2>
+                            <p class="dashboard-subtitle">Personaliza notificaciones y sistema</p>
+                        </div>
+
+                        <div class="controls-grid">
+                            <div class="control-section">
+                                <h3 class="section-title">🔔 Notificaciones</h3>
+                                
+                                <div class="control-row">
+                                    <span class="control-label">Activar Notificaciones</span>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" id="notifications-toggle" onchange="toggleNotifications()">
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                                
+                                <div class="control-row">
+                                    <span class="control-label">Frecuencia</span>
+                                    <select class="select-control" id="notification-frequency" onchange="updateFrequency()">
+                                        <option value="0.1">Cada 6 segundos (demo)</option>
+                                        <option value="1">Cada 1 minuto (demo)</option>
+                                        <option value="5" selected>Cada 5 minutos</option>
+                                        <option value="15">Cada 15 minutos</option>
+                                        <option value="30">Cada 30 minutos</option>
+                                        <option value="60">Cada hora</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="control-row">
+                                    <span class="control-label">Sonido</span>
+                                    <div style="display: flex; gap: 10px;">
+                                        <select class="select-control" id="alert-sound">
+                                            <option value="chime">🎵 Chime</option>
+                                            <option value="bell">🔔 Campana</option>
+                                            <option value="notification">📱 Notification</option>
+                                        </select>
+                                        <button class="button-control" onclick="testSound()">Probar</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="control-section">
+                                <h3 class="section-title">⚙️ Sistema</h3>
+                                
+                                <div class="control-row">
+                                    <span class="control-label">Auto-inicio</span>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" id="auto-start-toggle">
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Popup de Micro Hábito -->
+    <div class="popup-overlay" id="popup-overlay" onclick="closeHabitPopup()">
+        <div class="habit-popup" onclick="event.stopPropagation()">
+            <div class="popup-icon" id="popup-icon">⚡</div>
+            <h3 class="popup-title">¡Es Hora de Activarte!</h3>
+            <div class="popup-text" id="popup-text"></div>
+            <div class="popup-buttons">
+                <button class="btn btn-success" onclick="completeHabitFromPopup()">
+                    <span>✅</span> Completado
+                </button>
+                <button class="btn btn-secondary" onclick="closeHabitPopup()">
+                    <span>⏭️</span> Omitir
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts modulares -->
+    <script src="ui/js/app.js"></script>
+    <script src="ui/js/navigation.js"></script>
+    <script src="ui/js/survey.js"></script>
+    <script src="ui/js/habits.js"></script>
+    <script src="ui/js/settings.js"></script>
+    <script src="ui/js/stats.js"></script>
+    <script src="ui/js/sounds.js"></script>
+    <script src="ui/js/ui.js"></script>
+</body>
+</html>
